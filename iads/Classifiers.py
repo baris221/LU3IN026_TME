@@ -131,6 +131,7 @@ class ClassifierPerceptron(Classifier):
             v = np.random.uniform(0, 1, input_dimension)
             v = (2*v - 1)*0.001
             self.w = v.copy()
+            self.allw=[self.w.copy()]
         #raise NotImplementedError("Please Implement this method")
         
     def train_step(self, desc_set, label_set):
@@ -143,7 +144,7 @@ class ClassifierPerceptron(Classifier):
         for i in np.random.permutation(desc_set.shape[0]):
             if self.predict(desc_set[i]) != label_set[i]:
                 self.w += self.learning_rate * label_set[i] * desc_set[i]
-                #self.w[1] += self.learning_rate * label_set[i]
+                self.allw.append(self.w.copy())
      
     def train(self, desc_set, label_set, niter_max=100, seuil=0.01):
         """ Apprentissage itératif du perceptron sur le dataset donné.
@@ -155,15 +156,19 @@ class ClassifierPerceptron(Classifier):
             Retour: la fonction rend une liste
                 - liste des valeurs de norme de différences
         """ 
-        differences = []
-        for i in range(niter_max):
-            w_prec=self.w.copy()
+        converge = False
+        cpt = 0
+        liste_difference=[]
+        while(not converge and cpt < niter_max):
+            ancien_w = self.w.copy()
             self.train_step(desc_set, label_set)
-            diff = np.linalg.norm(self.w-w_prec)
-            differences.append(diff)
-            if abs(diff) < seuil:
-                break
-        return differences
+            diff = abs(ancien_w - self.w)
+            norm = np.linalg.norm(diff)
+            liste_difference.append(norm)
+            converge = norm <= seuil
+            cpt+=1
+            
+        return liste_difference
         #raise NotImplementedError("Please Implement this method")
     
     def score(self,x):
@@ -183,3 +188,7 @@ class ClassifierPerceptron(Classifier):
         else:
             return -1
         #raise NotImplementedError("Please Implement this method")
+
+    def get_allw(self):
+        return self.allw
+    
