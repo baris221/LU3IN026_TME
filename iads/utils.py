@@ -80,3 +80,38 @@ def plot_frontiere(desc_set, label_set, classifier, step=30):
     # tracer des frontieres
     # colors[0] est la couleur des -1 et colors[1] est la couleur des +1
     plt.contourf(x1grid,x2grid,res,colors=["darksalmon","skyblue"],levels=[-1000,0,1000])
+    
+    
+    
+def crossval_strat(X,Y,n_iterations,iteration):
+    
+    index_neg, = np.where(Y == -1)
+    index_pos, = np.where(Y == 1)
+    
+    
+    index_pos_test=index_pos[iteration*(len(index_pos) // n_iterations): (iteration+1)*len(index_pos)//n_iterations]
+    index_neg_test=index_neg[iteration*(len(index_neg) // n_iterations): (iteration+1)*len(index_neg)//n_iterations]
+    
+    X_Test=np.vstack((X[index_neg_test],X[index_pos_test]))
+    Y_Test=np.concatenate((Y[index_neg_test],Y[index_pos_test]))
+    
+    index_train=[i for i in range(len(X)) if ((i not in index_pos_test) and (i not in index_neg_test))]
+    
+    X_Train=X[index_train]
+    Y_Train=Y[index_train]
+    
+    return X_Train,Y_Train,X_Test,Y_Test
+
+
+def costcalcul(data,label,ensemble):
+    """ensemble est une liste de vecteur"""
+    cost=[]
+    for i in range(len(ensemble)):
+        w=ensemble[i].copy()
+        y_i=np.dot(X,w)
+        C=np.multiply(Y,y_i)
+        C=np.ones(200)-C
+        C[C <= 0] = 0
+        cost.append(np.sum(C))
+    
+    return cost

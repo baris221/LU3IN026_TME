@@ -7,7 +7,7 @@ Année: LU3IN026 - semestre 2 - 2022-2023, Sorbonne Université
 """
 
 # Classfieurs implémentés en LU3IN026
-# Version de départ : Février 2023
+# Version de départ : Février 2023
 
 # Import de packages externes
 import numpy as np
@@ -56,7 +56,9 @@ class Classifier:
         """
         acc=0
         for i in range(0,len(desc_set)):
-            if(self.predict(desc_set[i]) == label_set[i]):
+            pred=self.predict(desc_set[i])
+            #print(pred == label_set[i])
+            if(pred == label_set[i]):
                 acc=acc+1
         
         return acc/len(desc_set)
@@ -88,6 +90,7 @@ class ClassifierKNN(Classifier):
         """ rend la prediction sur x (-1 ou +1)
             x: une description : un ndarray
         """
+        
         return -1 if self.score(x)/2 + 0.5 <= 0.5 else +1
 
     def score(self,x):
@@ -131,7 +134,8 @@ class ClassifierPerceptron(Classifier):
             v = np.random.uniform(0, 1, input_dimension)
             v = (2*v - 1)*0.001
             self.w = v.copy()
-            self.allw=[self.w.copy()]
+        
+        self.allw=[self.w.copy()]
         #raise NotImplementedError("Please Implement this method")
         
     def train_step(self, desc_set, label_set):
@@ -192,3 +196,47 @@ class ClassifierPerceptron(Classifier):
     def get_allw(self):
         return self.allw
     
+
+class ClassifierPerceptronBiais(ClassifierPerceptron):
+    """ Perceptron de Rosenblatt avec biais
+        Variante du perceptron de base
+    """
+    def __init__(self, input_dimension, learning_rate=0.01, init=True):
+        """ Constructeur de Classifier
+            Argument:
+                - input_dimension (int) : dimension de la description des exemples (>0)
+                - learning_rate (par défaut 0.01): epsilon
+                - init est le mode d'initialisation de w: 
+                    - si True (par défaut): initialisation à 0 de w,
+                    - si False : initialisation par tirage aléatoire de valeurs petites
+        """
+        # Appel du constructeur de la classe mère
+        super().__init__(input_dimension, learning_rate, init)
+        self.input_dimension = input_dimension
+        self.learning_rate = learning_rate
+        self.allw = []
+        if (init == 0): 
+            self.w = np.zeros(input_dimension)
+        elif (init == 1): 
+            self.w = 0.001 * (2 * np.random.uniform(0, 1, input_dimension) - 1)
+        self.allw.append(self.w.copy())
+        
+        
+    def train_step(self, desc_set, label_set):
+        """ Réalise une unique itération sur tous les exemples du dataset
+            donné en prenant les exemples aléatoirement.
+            Arguments:
+                - desc_set: ndarray avec des descriptions
+                - label_set: ndarray avec les labels correspondants
+        """        
+        ### A COMPLETER !
+        # Ne pas oublier d'ajouter les poids à allw avant de terminer la méthode
+        index_list =[i for i in range(len(desc_set))]
+        np.random.shuffle(index_list)
+        for i in (index_list):
+            Xi, Yi = desc_set[i,:], label_set[i]
+            y_hat = np.dot(self.w, Xi)
+            if (y_hat*Yi<1):    # Il y a erreur, donc correction
+                self.w += self.learning_rate*np.dot(Xi,Yi)
+                self.allw.append(self.w.copy())
+        #raise NotImplementedError("Vous devez implémenter cette méthode !")
