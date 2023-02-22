@@ -92,7 +92,7 @@ def crossval_strat(X,Y,n_iterations,iteration):
     index_pos_test=index_pos[iteration*(len(index_pos) // n_iterations): (iteration+1)*len(index_pos)//n_iterations]
     index_neg_test=index_neg[iteration*(len(index_neg) // n_iterations): (iteration+1)*len(index_neg)//n_iterations]
     
-    X_Test=np.vstack((X[index_neg_test],X[index_pos_test]))
+    X_Test=np.concatenate((X[index_neg_test],X[index_pos_test]))
     Y_Test=np.concatenate((Y[index_neg_test],Y[index_pos_test]))
     
     index_train=[i for i in range(len(X)) if ((i not in index_pos_test) and (i not in index_neg_test))]
