@@ -108,9 +108,9 @@ def costcalcul(data,label,ensemble):
     cost=[]
     for i in range(len(ensemble)):
         w=ensemble[i].copy()
-        y_i=np.dot(X,w)
-        C=np.multiply(Y,y_i)
-        C=np.ones(200)-C
+        y_i=np.dot(data,w)
+        C=np.multiply(label,y_i)
+        C=np.ones(len(data))-C
         C[C <= 0] = 0
         cost.append(np.sum(C))
     
