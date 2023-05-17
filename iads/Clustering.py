@@ -145,3 +145,91 @@ def CHA_simple(DF,verbose=False,dendrogramme=False):
 
 def CHA_average(DF,verbose=False,dendrogramme=False):
     return CHA(DF,'average',verbose,dendrogramme)
+
+def inertie_cluster(Ens):
+    center=centroide(Ens)
+    return sum(dist_euclidienne(center,v)**2 for v in np.array(Ens))
+
+def init_kmeans(K,Ens):
+    df_Ens=pd.DataFrame(Ens)
+    return np.array(df_Ens.sample(n=K))
+
+def plus_proche(Exe,Centres):
+    return np.argmin([dist_euclidienne(Exe,centre) for centre in Centres])
+
+def affecte_cluster(Base,Centres):
+    dict_centre={i:[] for i in range(0,len(Centres))}
+    for j in range (0,len(Base)):
+        dict_centre[plus_proche(np.array(Base)[j],Centres)].append(j)
+        
+    return dict_centre
+
+def nouveaux_centroides(Base,U):
+    Base_numpy=np.array(Base) #pour pouvoir utiliser np.mean
+    result=[]
+    for k,elems in U.items():
+        result.append(np.mean([Base_numpy[i] for i in elems],axis=0))
+    
+    return np.array(result)
+
+def inertie_globale(Base, U):
+    Base_numpy=np.array(Base)
+    return sum([inertie_cluster([Base_numpy[i] for i in valeur]) for valeur in U.values()])
+
+def kmoyennes(K, Base, epsilon, iter_max,affichage=True):
+    Centres=init_kmeans(K,Base)
+    U=affecte_cluster(Base,Centres)
+    inertie_nouv=inertie_globale(Base,U)
+    if affichage:
+        print("Iteration : ",1," Inertie : ",inertie_nouv," Difference : ",inertie_nouv-epsilon-1)
+    for i in range(1,iter_max):
+        inertie_ancien=inertie_nouv
+        #Recalcul de Centres et U
+        Centres=nouveaux_centroides(Base,U)
+        U=affecte_cluster(Base,Centres)
+        inertie_nouv=inertie_globale(Base,U)
+        diff=inertie_ancien-inertie_nouv
+        if affichage:
+            print("Iteration : ",i+1," Inertie : ",inertie_nouv," Difference : ",diff)
+        if (diff < epsilon):
+            break
+        
+    return Centres,U
+
+def affiche_resultat(Base,Centres,Affect):
+    couleurs = ["b","g","c","m","y","k","w"]
+    plt.scatter(Centres[:,0],Centres[:,1],color='r',marker='x')
+    for elem in Affect.values():
+        c=np.random.choice(couleurs)
+        for i in elem:
+            plt.scatter(Base.iloc[i,0],Base.iloc[i,1],color=c)
+            
+def index_Dunn(Base,Centres,U):
+    
+    dist_matrix = np.zeros((len(Base), len(Base)))
+    for i in range(len(Base)):
+        for j in range(i + 1, len(Base)):
+            distance = np.sqrt(np.sum((Base.iloc[i] - Base.iloc[j])**2))
+            dist_matrix[i][j] = distance
+            dist_matrix[j][i] = distance
+
+    # Calculer la distance la plus courte entre tous les points internes des grappes,
+    diameters = []
+    for group in U.values():
+        if len(group) > 1:
+            group_matrix = dist_matrix[group][:, group]
+            diameters.append(np.max(group_matrix))
+        else:
+            diameters.append(0)
+    max_diameter = max(diameters)
+    
+    
+    L=[]
+    for i in range(len(Centres)):
+        for j in range(len(Centres)):
+            if(i!=j):
+                L.append((i,j))
+    list_dist=[clust.dist_centroides(Centres[i],Centres[j])for (i,j) in L]
+    
+    
+    return max(diameters)/min(list_dist)
