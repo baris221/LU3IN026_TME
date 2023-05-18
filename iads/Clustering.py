@@ -220,12 +220,10 @@ def index_Dunn(Base,Centres,U):
     max_diameter = max(diameters)
     
     
-    L=[]
-    for i in range(len(Centres)):
-        for j in range(len(Centres)):
-            if(i!=j):
-                L.append((i,j))
-    list_dist=[dist_centroides(Centres[i],Centres[j])for (i,j) in L]
+    # Calculate distances between cluster centroids
+    centroid_distances = cdist(Centres, Centres)
+    for i in range(0,len(centroid_distances)):
+        centroid_distances[i][i]=1000000000
     
     
-    return max(diameters)/min(list_dist)
+    return max(diameters)/np.min(centroid_distances)
