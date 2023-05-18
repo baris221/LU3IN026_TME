@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy
+from scipy.spatial.distance import cdist
 
 # ------------------------ 
 
@@ -206,12 +207,7 @@ def affiche_resultat(Base,Centres,Affect):
             
 def index_Dunn(Base,Centres,U):
     
-    dist_matrix = np.zeros((len(Base), len(Base)))
-    for i in range(len(Base)):
-        for j in range(i + 1, len(Base)):
-            distance = np.sqrt(np.sum((Base.iloc[i] - Base.iloc[j])**2))
-            dist_matrix[i][j] = distance
-            dist_matrix[j][i] = distance
+    dist_matrix = cdist(Base,Base)
 
     # Calculer la distance la plus courte entre tous les points internes des grappes,
     diameters = []
@@ -229,7 +225,7 @@ def index_Dunn(Base,Centres,U):
         for j in range(len(Centres)):
             if(i!=j):
                 L.append((i,j))
-    list_dist=[clust.dist_centroides(Centres[i],Centres[j])for (i,j) in L]
+    list_dist=[dist_centroides(Centres[i],Centres[j])for (i,j) in L]
     
     
     return max(diameters)/min(list_dist)
