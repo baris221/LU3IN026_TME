@@ -205,25 +205,17 @@ def affiche_resultat(Base,Centres,Affect):
         for i in elem:
             plt.scatter(Base.iloc[i,0],Base.iloc[i,1],color=c)
             
-def index_Dunn(Base,Centres,U):
-    
-    dist_matrix = cdist(Base,Base)
+def distance_max_cluster(cluster):
+    return np.max(cdist(cluster, cluster))
 
-    # Calculer la distance la plus courte entre tous les points internes des grappes,
-    diameters = []
-    for group in U.values():
-        if len(group) > 1:
-            group_matrix = dist_matrix[group][:, group]
-            diameters.append(np.max(group_matrix))
-        else:
-            diameters.append(0)
-    max_diameter = max(diameters)
-    
-    
-    # Calculate distances between cluster centroids
-    centroid_distances = cdist(Centres, Centres)
-    for i in range(0,len(centroid_distances)):
-        centroid_distances[i][i]=1000000000
-    
-    
-    return max(diameters)/np.min(centroid_distances)
+
+def co_dist(X, U):
+    d = 0
+    X = np.array(X)
+    for idxs in U.values():
+        d += distance_max_cluster(X[idxs])
+    return d
+
+
+def index_Dunn(Base,Centres,U):
+    return co_dist(Base, U) / inertie_globale(Base, U)
