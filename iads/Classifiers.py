@@ -124,12 +124,13 @@ class ClassifierKNN_MC(Classifier):
         self.k = k
         self.ref_desc = None
         self.ref_label = None
+        self.distance_table={}
         
     def score(self,x):
         """ 
         Enregistrer les étiquettes des k points les plus proches du point prédit et retourner le dictionnaire
         """
-        ref_tab = [np.linalg.norm(self.ref_desc[i]-x) for i in range(len(self.ref_label))]
+        ref_tab = [self.distance_calcul(x,self.ref_label[i]) for i in range(len(self.ref_label))]
         ind=np.argsort(np.asarray(ref_tab),axis=0)
         
         d = dict()
@@ -142,7 +143,7 @@ class ClassifierKNN_MC(Classifier):
     
     def predict(self, x):
         d = self.score(x)
-        return max(d, key=lambda k: d[k])
+        return max(d, key=d.get)
 
     def train(self, desc_set, label_set):
         """ Permet d'entrainer le modele sur l'ensemble donné
@@ -152,6 +153,14 @@ class ClassifierKNN_MC(Classifier):
         """        
         self.ref_desc = desc_set
         self.ref_label = label_set
+
+    def distance_calcul(self,x1,x2):
+        if (x1,x2) in self.distance_table:
+            return self.distance_table[(x1,x2)]
+        
+        dist=np.linalg.norm(x1-x2)
+        self.distance_table[(x1,x2)]=dist
+        return dist
         
         
 class ClassifierPerceptron(Classifier):
