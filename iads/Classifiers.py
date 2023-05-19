@@ -116,43 +116,36 @@ class ClassifierKNN(Classifier):
         #raise NotImplementedError("Please Implement this method")
 
 class ClassifierKNN_MC(Classifier):
+    """
+    Classifieur KNN multi-classe
+    """
 
-    # ATTENTION : il faut compléter cette classe avant de l'utiliser !
-    
-    def __init__(self, input_dimension, k):
-        self.input_dimension = input_dimension
-        self.k = k
-        self.ref_desc = None
-        self.ref_label = None
-        self.distance_table={}
-        
-    def score(self,x):
-        """ 
-        Enregistrer les étiquettes des k points les plus proches du point prédit et retourner le dictionnaire
+    def __init__(self, input_dimension, k, nb_class):
         """
-        ref_tab = [self.distance_calcul(x,self.ref_label[i]) for i in range(len(self.ref_label))]
-        ind=np.argsort(np.asarray(ref_tab),axis=0)
-        
-        d = dict()
-        for i in range(self.k):
-            if self.ref_label[ind[i]] not in d:
-                d[self.ref_label[ind[i]]] = 1
-            else:
-                d[self.ref_label[ind[i]]] += 1
-        return d   
-    
-    def predict(self, x):
-        d = self.score(x)
-        return max(d, key=d.get)
+        :param input_dimension (int) : dimension d'entrée des exemples
+        :param k (int) : nombre de voisins à considérer
+        :param nb_class (int): nombre de classes
+        Hypothèse : input_dimension > 0
+        """
+        self.k = k
+        self.nb_class = nb_class
+        self.desc =[]
+        self.label = []
 
-    def train(self, desc_set, label_set):
-        """ Permet d'entrainer le modele sur l'ensemble donné
-            desc_set: ndarray avec des descriptions
-            label_set: ndarray avec les labels correspondants
-            Hypothèse: desc_set et label_set ont le même nombre de lignes
-        """        
-        self.ref_desc = desc_set
-        self.ref_label = label_set
+    def train(self, data_set, label_set):
+        self.data_set = data_set
+        self.label_set = label_set
+
+    def score(self, x):
+        dist = np.linalg.norm(self.data_set-x, axis=1)
+        argsort = np.argsort(dist)
+        classes = self.label_set[argsort[:self.k]]
+        uniques, counts = np.unique(classes, return_counts=True)
+        return uniques[np.argmax(counts)]/self.nb_class
+
+    def predict(self, x):
+        return self.score(x)*self.nb_class
+        
 
     def distance_calcul(self,x1,x2):
         if (x1,x2) in self.distance_table:
