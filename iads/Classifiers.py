@@ -305,25 +305,17 @@ def shannon(P):
         Hypothèse: la somme des nombres de P vaut 1
         P correspond à une distribution de probabilité
         rend la valeur de l'entropie de Shannon correspondante
-        rem: la fonction utilise le log dont la base correspond à la taille de P
     """
-    k = len(P)
-    if k<=1:
-        return 0.
-    entropie_Shannon = 0
-    for pi in P:
-        if pi>0:
-            entropie_Shannon =entropie_Shannon- pi*math.log(pi,k)   
-    return entropie_Shannon
+    np.seterr(divide='ignore', invalid='ignore')
+    return np.sum(P * -np.nan_to_num(np.log(P)))
+
 
 def entropie(Y):
     """ Y : (array) : ensemble de labels de classe
-        retourne l'entropie en utilisant la formule Shannon de l'ensemble Y
+        rend l'entropie de l'ensemble Y
     """
-    classes, nb_fois = np.unique(Y, return_counts=True)
-    P = []
-    for i in range(len(classes)):
-        P.append(nb_fois[i]/sum(nb_fois))
+    u, c = np.unique(Y, return_counts=True)
+    P = c / len(Y)
     return shannon(P)
 
 class NoeudCategoriel:
